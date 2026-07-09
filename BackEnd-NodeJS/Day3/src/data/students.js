@@ -20,17 +20,6 @@ var listStudents = [
         "major": "Business Administration",
         "email": "vannak.kim@example.com",
         "courses": ["BUS301", "BUS305", "ECON210"]
-    },
-    {
-        "id": "3",
-        "firstName": "Dara",
-        "lastName": "Lim",
-        "age": 19,
-        "gender": "Male",
-        "grade": "Year 1",
-        "major": "Civil Engineering",
-        "email": "dara.lim@example.com",
-        "courses": ["ENG101", "MATH101", "PHYS101"]
     }
 ]
 module.exports = listStudents
