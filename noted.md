@@ -22,4 +22,12 @@ change in package.json
 
 req parameter
     there are 3 types of request parameters:
-    1- req.query - This is an object
+    1- req.query - This is an object containing the parameters passed in the query string
+    2- req.params - This is an object containing the parameters passed in the route path
+    3- req.body - This is an object containing the parameters passed in the request 
+
+res parameter
+    res.send(data) - This is used to send data to the client
+    res.json(data) - This is used to send data to the client in json format
+    res.status(statusCode) - This is used to set the status code of the response
+    res.end() - This is used to end the response
