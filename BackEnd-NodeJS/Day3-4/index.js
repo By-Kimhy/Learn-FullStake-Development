@@ -1,6 +1,7 @@
 // require express
 var express = require('express');
 var app = express();
+app.use(express.json());
 
 //import route product
 var productRoute=require('./src/route/product.route');
@@ -12,7 +13,7 @@ userRoute(app);
 // import route student (HomeWork)
 var studentRoute=require('./src/route/student.route');
 studentRoute(app);
-
+// import route teacher
 var teacherRoute=require('./src/route/teacher.route');
 teacherRoute(app);
 // runcode server
