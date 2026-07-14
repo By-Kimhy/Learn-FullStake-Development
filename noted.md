@@ -16,3 +16,10 @@ change in package.json
   "test": "echo \"Error: no test specified\" && exit 1",
   "start": "nodemon index.js"
 }
+
+
+(req,res)
+
+req parameter
+    there are 3 types of request parameters:
+    1- req.query - This is an object
