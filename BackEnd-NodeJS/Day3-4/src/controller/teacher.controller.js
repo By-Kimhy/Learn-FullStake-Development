@@ -7,17 +7,19 @@ function getTeacher(req, res) {
 function getTeacherById(req, res) {
     const TeacherId = parseInt(req.params.id);
     const teacher = listTeachers.find(s => parseInt(s.id) === TeacherId);
-    if(teacher != null){
+    if (teacher != null) {
         res.send({
-        data : teacher
-    });
-    }else{
+            data: teacher
+        });
+    } else {
         res.send("Teacher not found")
     }
 }
+
+
 function createTeacher(req, res) {
-    var newObject={
-        id:listTeachers.length+1,
+    var newObject = {
+        id: listTeachers.length + 1,
         name: "Vuthy Seng",
         subject: "Physics",
         experience_years: 12,
@@ -26,35 +28,30 @@ function createTeacher(req, res) {
     listTeachers.push(newObject);
 
     res.send({
-        isSuccess:true,
-        message:"Teacher created successfully",
-        teachers:listTeachers,
+        isSuccess: true,
+        message: "Teacher created successfully",
+        teachers: listTeachers,
     })
 }
+
+
 function updateTeacher(req, res) {
-    res.send("Update Teachers!");
+    const teacher = listTeachers.find(t => t.id == req.params.id);
+    if (teacher) {
+        Object.assign(teacher, req.body);
+        res.json(teacher);
+    } else {
+        res.status(404).send("Teacher not found");
+    }
 }
 function deleteTeacher(req, res) {
-    res.send("Delete Teachers!");
+    const index = listTeachers.findIndex(t => t.id == req.params.id);
+    if (index !== -1) {
+        listTeachers.splice(index, 1);
+        res.status(204).send("Teacher deleted successfully");
+    } else {
+        res.status(404).send("Teacher not found");
+    }
 }
 
-// exports.updateTeacher = (req, res) => {
-//   const teacher = teachers.find(t => t.id == req.params.id);
-//   if (teacher) {
-//     Object.assign(teacher, req.body);
-//     res.json(teacher);
-//   } else {
-//     res.status(404).send("Teacher not found");
-//   }
-// };
-
-// exports.deleteTeacher = (req, res) => {
-//   const index = teachers.findIndex(t => t.id == req.params.id);
-//   if (index !== -1) {
-//     teachers.splice(index, 1);
-//     res.status(204).send();
-//   } else {
-//     res.status(404).send("Teacher not found");
-//   }
-// };
 module.exports = { getTeacher, getTeacherById, createTeacher, updateTeacher, deleteTeacher }
