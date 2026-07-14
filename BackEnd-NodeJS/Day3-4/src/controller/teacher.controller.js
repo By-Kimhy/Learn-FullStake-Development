@@ -38,10 +38,6 @@ function deleteTeacher(req, res) {
     res.send("Delete Teachers!");
 }
 
-// exports.getAllTeacher = (req, res) => {
-//   res.json(teachers);
-// };
-
 // exports.updateTeacher = (req, res) => {
 //   const teacher = teachers.find(t => t.id == req.params.id);
 //   if (teacher) {
