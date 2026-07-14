@@ -32,9 +32,10 @@ function createProduct(req, res) {
 function updateProduct(req, res) {
     var id = req.params.id;
     var product = req.body;
-    var index = listproducts.findIndex(function (product) {
-        return product.id === id;
-    });
+    var index = listproducts.findIndex(
+        function (product) {
+            return product.id === id;
+        });
     if (index !== -1) {
         listproducts[index] = product;
         res.status(202).send({
