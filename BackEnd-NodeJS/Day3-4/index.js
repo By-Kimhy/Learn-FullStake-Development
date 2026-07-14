@@ -14,7 +14,7 @@ var studentRoute=require('./src/route/student.route');
 studentRoute(app);
 
 var teacherRoute=require('./src/route/teacher.route');
-
+teacherRoute(app);
 // runcode server
 app.listen(3000, () => {
     console.log("Server is running on http://localhost:3000")

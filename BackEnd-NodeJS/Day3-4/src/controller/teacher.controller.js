@@ -12,11 +12,24 @@ function getTeacherById(req, res) {
         data : teacher
     });
     }else{
-        res.send("Don't have this Teacher ID")
+        res.send("Teacher not found")
     }
 }
 function createTeacher(req, res) {
-    res.send("Create Teachers!");
+    var newObject={
+        id:listTeachers.length+1,
+        name: "Vuthy Seng",
+        subject: "Physics",
+        experience_years: 12,
+        email: "vuthy.seng@school.edu"
+    }
+    listTeachers.push(newObject);
+
+    res.send({
+        isSuccess:true,
+        message:"Teacher created successfully",
+        teachers:listTeachers,
+    })
 }
 function updateTeacher(req, res) {
     res.send("Update Teachers!");
@@ -24,4 +37,28 @@ function updateTeacher(req, res) {
 function deleteTeacher(req, res) {
     res.send("Delete Teachers!");
 }
+
+// exports.getAllTeacher = (req, res) => {
+//   res.json(teachers);
+// };
+
+// exports.updateTeacher = (req, res) => {
+//   const teacher = teachers.find(t => t.id == req.params.id);
+//   if (teacher) {
+//     Object.assign(teacher, req.body);
+//     res.json(teacher);
+//   } else {
+//     res.status(404).send("Teacher not found");
+//   }
+// };
+
+// exports.deleteTeacher = (req, res) => {
+//   const index = teachers.findIndex(t => t.id == req.params.id);
+//   if (index !== -1) {
+//     teachers.splice(index, 1);
+//     res.status(204).send();
+//   } else {
+//     res.status(404).send("Teacher not found");
+//   }
+// };
 module.exports = { getTeacher, getTeacherById, createTeacher, updateTeacher, deleteTeacher }
