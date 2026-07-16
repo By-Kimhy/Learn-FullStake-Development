@@ -58,79 +58,77 @@
     var tbody = document.querySelector("tbody");
     var editingProductId = null;
 
-    function fillForm(product) {
-      document.getElementById("name").value = product.name || "";
-      document.getElementById("category").value = product.category || "";
-      document.getElementById("price").value = product.price || "";
-      document.getElementById("currency").value = product.currency || "";
-      document.getElementById("stock").value = product.stock || "";
-      document.getElementById("tags").value = Array.isArray(product.tags)
-        ? product.tags.join(", ")
-        : product.tags || "";
-    }
-
     function getAllItem() {
       fetch(BaseURL + "/api/v1/product/getAllItem")
-        .then((response) => {
+        .then(function (response) {
           if (!response.ok) {
             throw new Error("Failed to load products");
           }
           return response.json();
         })
-        .then((data) => {
-          var products = Array.isArray(data.products)
-            ? data.products
-            : Array.isArray(data.proucts)
-              ? data.proucts
-              : [];
+        .then(function (data) {
+          var products = Array.isArray(data.products) ? data.products : [];
           var validProducts = products.filter(function (product) {
             return product && (product.name || "").toString().trim();
           });
           var item = "";
+
           if (validProducts.length === 0) {
             item = '<tr><td colspan="8">No products found</td></tr>';
           } else {
-            for (var obj in validProducts) {
-              var product = validProducts[obj];
+            for (var index = 0; index < validProducts.length; index++) {
+              var product = validProducts[index];
               var tags = Array.isArray(product.tags)
                 ? product.tags.join(", ")
                 : product.tags || "";
+              var safeName = (product.name || "").replace(/'/g, "\\'");
+              var safeCategory = (product.category || "").replace(/'/g, "\\'");
+              var safeCurrency = (product.currency || "").replace(/'/g, "\\'");
+              var safeTags = tags.replace(/'/g, "\\'");
+
               item += `
-                            <tr>
-                                <td>${product.id || ""}</td>
-                                <td>${product.name || ""}</td>
-                                <td>${product.category || ""}</td>
-                                <td>${product.price || ""}</td>
-                                <td>${product.currency || ""}</td>
-                                <td>${product.stock || ""}</td>
-                                <td>${tags}</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-update" onclick="editProduct('${product.id}', '${(product.name || "").replace(/'/g, "\\'")}', '${(product.category || "").replace(/'/g, "\\'")}', '${product.price || ""}', '${(product.currency || "").replace(/'/g, "\\'")}', '${product.stock || ""}', '${(Array.isArray(product.tags) ? product.tags.join(", ") : product.tags || "").replace(/'/g, "\\'")}')">Update</button>
-                                        <button class="btn-delete" onclick="deleteProduct('${product.id}')">Delete</button>
-                                    </div>
-                                </td>
-                            </tr>
-                    `;
+                <tr>
+                  <td>${product.id || ""}</td>
+                  <td>${product.name || ""}</td>
+                  <td>${product.category || ""}</td>
+                  <td>${product.price || ""}</td>
+                  <td>${product.currency || ""}</td>
+                  <td>${product.stock || ""}</td>
+                  <td>${tags}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-update" onclick="editProduct('${product.id}', '${safeName}', '${safeCategory}', '${product.price || ""}', '${safeCurrency}', '${product.stock || ""}', '${safeTags}')">Update</button>
+                      <button class="btn-delete" onclick="deleteProduct('${product.id}')">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
             }
           }
+
           tbody.innerHTML = item;
         })
-        .catch((error) => {
+        .catch(function (error) {
           console.error(error);
           tbody.innerHTML =
             '<tr><td colspan="8">Unable to load products. Check the API server.</td></tr>';
         });
     }
 
-    //call to get all item
-    getAllItem();
-
     function setButtonMode(isEditing) {
       var btn = document.getElementById("btnadd");
       if (btn) {
         btn.textContent = isEditing ? "Update" : "Add";
       }
+    }
+
+    function clearForm() {
+      document.getElementById("name").value = "";
+      document.getElementById("category").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("currency").value = "";
+      document.getElementById("stock").value = "";
+      document.getElementById("tags").value = "";
     }
 
     function editProduct(id, name, category, price, currency, stock, tags) {
@@ -150,11 +148,8 @@
       });
     }
 
-    //add data product
-    var btnadd = document.getElementById("btnadd");
-    btnadd.onclick = () => {
-      //get data from input
-      var Name = document.getElementById("name").value;
+    function handleSubmit() {
+      var name = document.getElementById("name").value;
       var category = document.getElementById("category").value;
       var price = document.getElementById("price").value;
       var currency = document.getElementById("currency").value;
@@ -168,7 +163,7 @@
         .filter(Boolean);
 
       if (
-        !Name.trim() ||
+        !name.trim() ||
         !category.trim() ||
         !price ||
         !currency.trim() ||
@@ -184,86 +179,56 @@
         return;
       }
 
-      if (editingProductId) {
-        fetch(BaseURL + "/api/v1/product/updateItem/" + editingProductId, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: Name,
-            category: category,
-            price: Number(price),
-            currency: currency,
-            stock: Number(stock),
-            tags: tags,
-          }),
-        })
-          .then(function (response) {
-            if (!response.ok) {
-              throw new Error("Update failed");
-            }
-            return response.json();
-          })
-          .then(function () {
-            Swal.fire({
-              title: "Product Updated",
-              text: "Product has been updated successfully",
-              icon: "success",
-              confirmButtonText: "Ok",
-            });
-            editingProductId = null;
-            setButtonMode(false);
-            document.getElementById("name").value = "";
-            document.getElementById("category").value = "";
-            document.getElementById("price").value = "";
-            document.getElementById("currency").value = "";
-            document.getElementById("stock").value = "";
-            document.getElementById("tags").value = "";
-            getAllItem();
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-        return;
-      }
+      var payload = {
+        name: name,
+        category: category,
+        price: Number(price),
+        currency: currency,
+        stock: Number(stock),
+        tags: tags,
+      };
 
-      fetch(BaseURL + "/api/v1/product/createItem", {
-        method: "POST",
+      var requestUrl = editingProductId
+        ? BaseURL + "/api/v1/product/updateItem/" + editingProductId
+        : BaseURL + "/api/v1/product/createItem";
+      var method = editingProductId ? "PUT" : "POST";
+
+      fetch(requestUrl, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: Name,
-          category: category,
-          price: Number(price),
-          currency: currency,
-          stock: Number(stock),
-          tags: tags,
-        }),
+        body: JSON.stringify(payload),
       })
-        .then((obj) => {
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error(editingProductId ? "Update failed" : "Create failed");
+          }
+          return response.json();
+        })
+        .then(function () {
           Swal.fire({
-            title: "Product Added",
-            text: "Product has been added successfully",
+            title: editingProductId ? "Product Updated" : "Product Added",
+            text: editingProductId
+              ? "Product has been updated successfully"
+              : "Product has been added successfully",
             icon: "success",
             confirmButtonText: "Ok",
           });
-          document.getElementById("name").value = "";
-          document.getElementById("category").value = "";
-          document.getElementById("price").value = "";
-          document.getElementById("currency").value = "";
-          document.getElementById("stock").value = "";
-          document.getElementById("tags").value = "";
+          editingProductId = null;
+          clearForm();
           setButtonMode(false);
           getAllItem();
         })
-        .catch((error) => {
+        .catch(function (error) {
           console.log(error);
         });
-    };
+    }
 
-    //Delete data product
+    getAllItem();
+    setButtonMode(false);
+    document.getElementById("btnadd").onclick = handleSubmit;
+
     function deleteProduct(id) {
       fetch(BaseURL + "/api/v1/product/deleteItem/" + id, {
         method: "DELETE",
@@ -290,10 +255,5 @@
           console.log(error);
         });
     }
-
-    var btndelete = document.getElementById("btndelete");
-    btndelete.onclick = () => {
-      deleteProduct(editingProductId);
-    };
   </script>
 </html>

@@ -20,18 +20,17 @@ function getProductById(req, res) {
     }
 }
 function createProduct(req, res) {
-    // var product = req.body;
-    // listproducts.push(product);
-    // res.status(201).send({
-    //     isSuccess: true,
-    //     message: "Product created successfully",
-    //     data: product,
-    //     products: listproducts
-    // });
-
     var product = req.body;
+    var numericIds = listproducts
+        .map(function (item) {
+            return Number(item.id);
+        })
+        .filter(function (value) {
+            return !isNaN(value);
+        });
+    var nextId = numericIds.length > 0 ? String(Math.max.apply(null, numericIds) + 1) : "1";
     var newProduct = {
-        id: listproducts.length + 1,
+        id: nextId,
         name: product.name,
         category: product.category,
         price: product.price,
@@ -101,49 +100,24 @@ function updateProduct(req, res) {
     }
 }
 function deleteProduct(req, res) {
-    // var id = req.params.id;
-    // var index = listproducts.findIndex(p => p.id === id);
-    // if (index !== -1) {
-    //     listproducts.splice(index, 1);
-    //     res.status(200).send({
-    //         isSuccess: true,
-    //         message: "Product deleted successfully",
-    //         products: listproducts
-    //     });
-    // } else {
-    //     res.status(404).send({
-    //         message: "Product not found"
-    //     });
-    // }
-
     var id = req.params.id;
-    var product = listproducts.filter(function (product) {
+    var index = listproducts.findIndex(function (product) {
         return product.id === id;
-    })
-    if(product.length === 0){
+    });
+    if(index === -1){
         res.status(404).send({
             isSuccess: false,
             message: "Product not found"
         });
     }
     else{
-        listproducts.splice(product[0], 1);
+        listproducts.splice(index, 1);
         res.status(200).send({
             isSuccess: true,
             message: "Product deleted successfully",
             products: listproducts
         });
     }
-
-
-
-    // req query data from request
-    // var id = req.params.code;
-    // res.status(200).send({
-    //     isSuccess: true,
-    //     message: "Product deleted successfully",
-    //     id
-    // });
 }
 
 module.exports = {
