@@ -1,7 +1,10 @@
 // require express
 var express = require('express');
+const cors = require('cors');
 var app = express();
+app.use(cors());
 app.use(express.json());
+
 
 //import route product
 var productRoute=require('./src/route/product.route');

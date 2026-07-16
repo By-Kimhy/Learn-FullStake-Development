@@ -2,7 +2,6 @@ var {getProduct,getProductById,createProduct,updateProduct,deleteProduct} = requ
 function productRoute(app) {
     // get all products
     app.get('/api/v1/product/getAllItem',getProduct)
-
     // get a product by id
     app.get('/api/v1/product/getItem/:id',getProductById)
     //create a product

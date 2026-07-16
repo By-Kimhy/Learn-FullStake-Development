@@ -1,6 +1,6 @@
 var listproducts = [
     {
-        "id": "P001",
+        "id": "1",
         "name": "Wireless Mouse",
         "category": "Electronics",
         "price": 19.99,
@@ -9,7 +9,7 @@ var listproducts = [
         "tags": ["computer", "accessory", "wireless"]
     },
     {
-        "id": "P002",
+        "id": "2",
         "name": "Bluetooth Headphones",
         "category": "Audio",
         "price": 59.99,

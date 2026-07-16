@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Testing Fetch api</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <label for="name">Name</label>
+      <input type="text" id="name" placeholder="Enter product name" />
+
+      <label for="category">Category</label>
+      <input type="text" id="category" placeholder="Electronics" />
+
+      <label for="price">Price</label>
+      <input type="number" id="price" step="0.01" placeholder="19.99" />
+
+      <label for="currency">Currency</label>
+      <input type="text" id="currency" placeholder="USD" />
+
+      <label for="stock">Stock</label>
+      <input type="number" id="stock" placeholder="120" />
+
+      <label for="tags">Tags</label>
+      <input
+        type="text"
+        id="tags"
+        placeholder="computer, accessory, wireless"
+      />
+
+      <button id="btnadd">Add</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Currency</th>
+            <th>Stock</th>
+            <th>Tags</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </body>
+  <script>
+    var BaseURL = "http://localhost:3000";
+    var tbody = document.querySelector("tbody");
+    var editingProductId = null;
+
+    function fillForm(product) {
+      document.getElementById("name").value = product.name || "";
+      document.getElementById("category").value = product.category || "";
+      document.getElementById("price").value = product.price || "";
+      document.getElementById("currency").value = product.currency || "";
+      document.getElementById("stock").value = product.stock || "";
+      document.getElementById("tags").value = Array.isArray(product.tags)
+        ? product.tags.join(", ")
+        : product.tags || "";
+    }
+
+    function getAllItem() {
+      fetch(BaseURL + "/api/v1/product/getAllItem")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to load products");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          var products = Array.isArray(data.products)
+            ? data.products
+            : Array.isArray(data.proucts)
+              ? data.proucts
+              : [];
+          var validProducts = products.filter(function (product) {
+            return product && (product.name || "").toString().trim();
+          });
+          var item = "";
+          if (validProducts.length === 0) {
+            item = '<tr><td colspan="8">No products found</td></tr>';
+          } else {
+            for (var obj in validProducts) {
+              var product = validProducts[obj];
+              var tags = Array.isArray(product.tags)
+                ? product.tags.join(", ")
+                : product.tags || "";
+              item += `
+                            <tr>
+                                <td>${product.id || ""}</td>
+                                <td>${product.name || ""}</td>
+                                <td>${product.category || ""}</td>
+                                <td>${product.price || ""}</td>
+                                <td>${product.currency || ""}</td>
+                                <td>${product.stock || ""}</td>
+                                <td>${tags}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-update" onclick="editProduct('${product.id}', '${(product.name || "").replace(/'/g, "\\'")}', '${(product.category || "").replace(/'/g, "\\'")}', '${product.price || ""}', '${(product.currency || "").replace(/'/g, "\\'")}', '${product.stock || ""}', '${(Array.isArray(product.tags) ? product.tags.join(", ") : product.tags || "").replace(/'/g, "\\'")}')">Update</button>
+                                        <button class="btn-delete" onclick="deleteProduct('${product.id}')">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                    `;
+            }
+          }
+          tbody.innerHTML = item;
+        })
+        .catch((error) => {
+          console.error(error);
+          tbody.innerHTML =
+            '<tr><td colspan="8">Unable to load products. Check the API server.</td></tr>';
+        });
+    }
+
+    //call to get all item
+    getAllItem();
+
+    function setButtonMode(isEditing) {
+      var btn = document.getElementById("btnadd");
+      if (btn) {
+        btn.textContent = isEditing ? "Update" : "Add";
+      }
+    }
+
+    function editProduct(id, name, category, price, currency, stock, tags) {
+      editingProductId = id;
+      setButtonMode(true);
+      document.getElementById("name").value = name || "";
+      document.getElementById("category").value = category || "";
+      document.getElementById("price").value = price || "";
+      document.getElementById("currency").value = currency || "";
+      document.getElementById("stock").value = stock || "";
+      document.getElementById("tags").value = tags || "";
+      Swal.fire({
+        title: "Edit mode",
+        text: "Product data loaded. Change the fields and click Update to save the changes.",
+        icon: "info",
+        confirmButtonText: "OK",
+      });
+    }
+
+    //add data product
+    var btnadd = document.getElementById("btnadd");
+    btnadd.onclick = () => {
+      //get data from input
+      var Name = document.getElementById("name").value;
+      var category = document.getElementById("category").value;
+      var price = document.getElementById("price").value;
+      var currency = document.getElementById("currency").value;
+      var stock = document.getElementById("stock").value;
+      var tagsInput = document.getElementById("tags").value;
+      var tags = tagsInput
+        .split(",")
+        .map(function (tag) {
+          return tag.trim();
+        })
+        .filter(Boolean);
+
+      if (
+        !Name.trim() ||
+        !category.trim() ||
+        !price ||
+        !currency.trim() ||
+        !stock ||
+        !tagsInput.trim()
+      ) {
+        Swal.fire({
+          title: "Missing fields",
+          text: "Please fill all product fields before adding.",
+          icon: "warning",
+          confirmButtonText: "Ok",
+        });
+        return;
+      }
+
+      if (editingProductId) {
+        fetch(BaseURL + "/api/v1/product/updateItem/" + editingProductId, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: Name,
+            category: category,
+            price: Number(price),
+            currency: currency,
+            stock: Number(stock),
+            tags: tags,
+          }),
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error("Update failed");
+            }
+            return response.json();
+          })
+          .then(function () {
+            Swal.fire({
+              title: "Product Updated",
+              text: "Product has been updated successfully",
+              icon: "success",
+              confirmButtonText: "Ok",
+            });
+            editingProductId = null;
+            setButtonMode(false);
+            document.getElementById("name").value = "";
+            document.getElementById("category").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("currency").value = "";
+            document.getElementById("stock").value = "";
+            document.getElementById("tags").value = "";
+            getAllItem();
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+        return;
+      }
+
+      fetch(BaseURL + "/api/v1/product/createItem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: Name,
+          category: category,
+          price: Number(price),
+          currency: currency,
+          stock: Number(stock),
+          tags: tags,
+        }),
+      })
+        .then((obj) => {
+          Swal.fire({
+            title: "Product Added",
+            text: "Product has been added successfully",
+            icon: "success",
+            confirmButtonText: "Ok",
+          });
+          document.getElementById("name").value = "";
+          document.getElementById("category").value = "";
+          document.getElementById("price").value = "";
+          document.getElementById("currency").value = "";
+          document.getElementById("stock").value = "";
+          document.getElementById("tags").value = "";
+          setButtonMode(false);
+          getAllItem();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    };
+
+    //Delete data product
+    function deleteProduct(id) {
+      fetch(BaseURL + "/api/v1/product/deleteItem/" + id, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Delete failed");
+          }
+          return response.json();
+        })
+        .then(function () {
+          Swal.fire({
+            title: "Product Deleted",
+            text: "Product has been deleted successfully",
+            icon: "success",
+            confirmButtonText: "Ok",
+          });
+          getAllItem();
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+
+    var btndelete = document.getElementById("btndelete");
+    btndelete.onclick = () => {
+      deleteProduct(editingProductId);
+    };
+  </script>
+</html>
