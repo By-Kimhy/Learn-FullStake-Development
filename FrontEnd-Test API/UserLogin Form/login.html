@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="loginStyle.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Login Form</title>
+  </head>
+  <body>
+    <div class="container">
+      <form id="loginForm" onsubmit="logIn(event)">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="Enter username"
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Enter password"
+          />
+        </div>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </body>
+  <script>
+
+    function clearForm() {
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+    }
+    var BaseURL = "http://localhost:3000";
+    function logIn(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      var username = document.getElementById("username").value.trim();
+      var password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        Swal.fire({
+          title: "Missing fields",
+          text: "Please enter both username and password.",
+          icon: "warning",
+          confirmButtonText: "Ok",
+        });
+        return;
+      }
+
+      fetch(BaseURL + "/api/v1/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Invalid username or password");
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          Swal.fire({
+            title: "Login successful",
+            text: data.message || "Welcome back!",
+            icon: "success",
+            confirmButtonText: "Ok",
+          });
+          clearForm();
+        })
+        .catch(function (error) {
+          console.error(error);
+          Swal.fire({
+            title: "Login failed",
+            text: "Please check your username and password.",
+            icon: "error",
+            confirmButtonText: "Ok",
+          });
+        });
+    }
+  </script>
+</html>

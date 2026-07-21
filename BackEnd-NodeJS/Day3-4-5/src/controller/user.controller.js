@@ -83,4 +83,37 @@ function deleteUser(req, res) {
     }
 }
 
-module.exports = {getUser,getUserById,createUser,updateUser,deleteUser};
+function loginUser(req, res) {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).send({
+            isSuccess: false,
+            message: "Username and password are required"
+        });
+    }
+
+    const user = listUsers.find(function (item) {
+        return item.username === username && item.password === password;
+    });
+
+    if (!user) {
+        return res.status(401).send({
+            isSuccess: false,
+            message: "Invalid username or password"
+        });
+    }
+
+    return res.status(200).send({
+        isSuccess: true,
+        message: "Login successful",
+        user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role
+        }
+    });
+}
+
+module.exports = {getUser,getUserById,createUser,updateUser,deleteUser,loginUser};
