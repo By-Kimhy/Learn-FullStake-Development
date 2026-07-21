@@ -34,9 +34,7 @@ function createProduct(req, res) {
         name: product.name,
         category: product.category,
         price: product.price,
-        currency: product.currency,
         stock: product.stock,
-        tags: product.tags
     };
     listproducts.push(newProduct);
     res.status(201).send({
@@ -69,7 +67,7 @@ function updateProduct(req, res) {
 
     // get data from request
     var id = req.params.id;
-    var { name, category, price, currency, stock, tags } = req.body;
+    var { name, category, price, stock } = req.body;
     //search current product
     var product = listproducts.filter(function (product) {
         return product.id === id;
@@ -87,9 +85,7 @@ function updateProduct(req, res) {
         product[0].name = name;
         product[0].category = category;
         product[0].price = price;
-        product[0].currency = currency;
         product[0].stock = stock;
-        product[0].tags = tags;
         //send response
         res.status(202).send({
             isSuccess: true,

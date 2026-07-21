@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Testing Fetch api</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <label for="name">Name</label>
+      <input type="text" id="name" placeholder="Enter product name" />
+
+      <label for="category">Category</label>
+      <input type="text" id="category" placeholder="Electronics" />
+
+      <label for="price">Price</label>
+      <input type="number" id="price" step="0.01" placeholder="19.99" />
+
+      <label for="stock">Stock</label>
+      <input type="number" id="stock" placeholder="120" />
+
+      <button id="btnadd">Add</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </body>
+  <script>
+        var BaseURL = "http://localhost:3000";
+        var tbody = document.querySelector("tbody");
+        var editingProductId = null;
+
+        function getAllItem() {
+          fetch(BaseURL + "/api/v1/product/getAllItem")
+            .then(function (response) {
+              if (!response.ok) {
+                throw new Error("Failed to load products");
+              }
+              return response.json();
+            })
+            .then(function (data) {
+              var products = Array.isArray(data.products) ? data.products : [];
+              var validProducts = products.filter(function (product) {
+                return product && (product.name || "").toString().trim();
+              });
+              var item = "";
+
+              if (validProducts.length === 0) {
+                item = '<tr><td colspan="6">No products found</td></tr>';
+              } else {
+                for (var index = 0; index < validProducts.length; index++) {
+                  var product = validProducts[index];
+                  var safeName = (product.name || "").replace(/'/g, "\\'");
+                  var safeCategory = (product.category || "").replace(/'/g, "\\'");
+
+                  item += `
+                    <tr>
+                      <td>${product.id || ""}</td>
+                      <td>${product.name || ""}</td>
+                      <td>${product.category || ""}</td>
+                      <td>${product.price || ""}</td>
+                      <td>${product.stock || ""}</td>
+                      <td>
+                        <div class="action-buttons">
+                          <button class="btn-update" onclick="editProduct('${product.id}', '${safeName}', '${safeCategory}', '${product.price || ""}', '${product.stock || ""}')">Update</button>
+                          <button class="btn-delete" onclick="deleteProduct('${product.id}')">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }
+              }
+
+              tbody.innerHTML = item;
+            })
+            .catch(function (error) {
+              console.error(error);
+              tbody.innerHTML =
+                '<tr><td colspan="6">Unable to load products. Check the API server.</td></tr>';
+            });
+        }
+
+        function setButtonMode(isEditing) {
+          var btn = document.getElementById("btnadd");
+          if (btn) {
+            btn.textContent = isEditing ? "Update" : "Add";
+          }
+        }
+
+        function clearForm() {
+          document.getElementById("name").value = "";
+          document.getElementById("category").value = "";
+          document.getElementById("price").value = "";
+          document.getElementById("stock").value = "";
+        }
+
+        function editProduct(id, name, category, price, stock) {
+          editingProductId = id;
+          setButtonMode(true);
+          document.getElementById("name").value = name || "";
+          document.getElementById("category").value = category || "";
+          document.getElementById("price").value = price || "";
+          document.getElementById("stock").value = stock || "";
+          Swal.fire({
+            title: "Edit mode",
+            text: "Product data loaded. Change the fields and click Update to save the changes.",
+            icon: "info",
+            confirmButtonText: "OK",
+          });
+        }
+
+        function handleSubmit() {
+          var name = document.getElementById("name").value;
+          var category = document.getElementById("category").value;
+          var price = document.getElementById("price").value;
+          var stock = document.getElementById("stock").value;
+
+          if (!name.trim() || !category.trim() || !price || !stock) {
+            Swal.fire({
+              title: "Missing fields",
+              text: "Please fill all product fields before adding.",
+              icon: "warning",
+              confirmButtonText: "Ok",
+            });
+            return;
+          }
+
+          var payload = {
+            name: name,
+            category: category,
+            price: Number(price),
+            stock: Number(stock),
+          };
+
+          var requestUrl = editingProductId
+            ? BaseURL + "/api/v1/product/updateItem/" + editingProductId
+            : BaseURL + "/api/v1/product/createItem";
+          var method = editingProductId ? "PUT" : "POST";
+
+          fetch(requestUrl, {
+            method: method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          })
+            .then(function (response) {
+              if (!response.ok) {
+                throw new Error(editingProductId ? "Update failed" : "Create failed");
+              }
+              return response.json();
+            })
+            .then(function () {
+              Swal.fire({
+                title: editingProductId ? "Product Updated" : "Product Added",
+                text: editingProductId
+                  ? "Product has been updated successfully"
+                  : "Product has been added successfully",
+                icon: "success",
+                confirmButtonText: "Ok",
+              });
+              editingProductId = null;
+              clearForm();
+              setButtonMode(false);
+              getAllItem();
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }
+
+        getAllItem();
+        setButtonMode(false);
+        document.getElementById("btnadd").onclick = handleSubmit;
+
+        function deleteSuccess(id) {
+          fetch(BaseURL + "/api/v1/product/deleteItem/" + id, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then(function (response) {
+              if (!response.ok) {
+                throw new Error("Delete failed");
+              }
+              return response.json();
+            })
+            .then(function () {
+              Swal.fire({
+                title: "Product Deleted",
+                text: "Product has been deleted successfully",
+                icon: "success",
+                confirmButtonText: "Ok",
+              });
+              getAllItem();
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }
+
+        function deleteProduct(id) {
+              Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+              }).then((result) => {
+                if (result.isConfirmed) 
+                  deleteSuccess(id);
+              });
+            };
+  </script>
+</html>
