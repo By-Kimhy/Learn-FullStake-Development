@@ -1,4 +1,6 @@
 var listproducts = require('../data/products');
+var connection = require('../config/config');
+
 function getProduct(req, res) {
     res.send({
         products: listproducts

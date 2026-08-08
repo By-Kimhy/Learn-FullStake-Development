@@ -19,6 +19,11 @@ studentRoute(app);
 // import route teacher
 var teacherRoute=require('./src/route/teacher.route');
 teacherRoute(app);
+
+// import route employee
+var employeeRoute=require('./src/route/employee.route');
+employeeRoute(app);
+
 // runcode server
 app.listen(3000, () => {
     console.log("Server is running on http://localhost:3000")
