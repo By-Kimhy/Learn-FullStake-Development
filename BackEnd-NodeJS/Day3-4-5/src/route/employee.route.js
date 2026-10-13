@@ -6,9 +6,9 @@ function employeeRoute(app) {
     // create a employee
     app.post('/api/v1/employee/createEmployee',createEmployee)
     //update a employee
-    app.put('/api/v1/employee/updateEmployee/:EmpCode',updateEmployee)
+    app.put('/api/v1/employee/updateEmployee/:id',updateEmployee)
     //delete a employee
-    app.delete('/api/v1/employee/deleteEmployee/:EmpCode',deleteEmployee)   
+    app.delete('/api/v1/employee/deleteEmployee/:id',deleteEmployee)   
 }
 
 //export employee route
